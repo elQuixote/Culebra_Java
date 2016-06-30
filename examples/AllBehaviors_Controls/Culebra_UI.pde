@@ -8,7 +8,7 @@ class Culebra_UI { //<>//
 
   Slider pr, sd, pt, wr, wd, wrt, wt, mc, is, ms, mf, msep, ac, st, sct, hw, stw, t, mts;
   Slider seeker_is, seeker_ms, seeker_mf, seeker_msep;
-  Slider c_sd, c_pt, c_wr, c_wd, c_wrt, c_wt, c_is, c_ms, c_mf, c_msep, c_ct, c_mvr, c_mxvr, c_mvA, c_MvA, c_hw, c_t, c_stw;
+  Slider c_sd, c_pt, c_wr, c_wd, c_wrt, c_wt, c_is, c_ms, c_mf, c_msep, c_ct, c_mvr, c_mxvr, c_mvA, c_MvA, c_hw, c_t, c_stw, b_msep;
   Slider f_sR, f_av, f_sv, f_cv, f_dc, f_va;
   Slider mc_sp, mc_mt, mc_maxBabies;
   Button cbut, showPaths, showMesh;
@@ -146,7 +146,7 @@ class Culebra_UI { //<>//
     this.t = cp5.addSlider("Transparency").plugTo(parent).setRange(0.00f, 255).setPosition(vizWidth, vizHeader + vizHeaderGap + (vizSpacing*2) + cummulative + cummulative2)
       .setValue(255.0f).setDecimalPrecision(2).setSize(50, 10);   
     this.mts =  cp5.addSlider("minTrailSteps").plugTo(parent).setRange(0.00, 20.00).setPosition(vizWidth, vizHeader + vizHeaderGap + (vizSpacing*3) + cummulative + cummulative2).setValue(0).setDecimalPrecision(0).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40));
-    this.st =  cp5.addSlider("maxTrail").plugTo(parent).setRange(0.00, 5000.00).setPosition(vizWidth, vizHeader + vizHeaderGap + (vizSpacing*4) + cummulative + cummulative2).setValue(500).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40));
+    this.st =  cp5.addSlider("maxTrail").plugTo(parent).setRange(0.00, 5000.00).setPosition(vizWidth, vizHeader + vizHeaderGap + (vizSpacing*4) + cummulative + cummulative2).setValue(20).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40));
 
     cummulative3 = vizHeader + vizHeaderGap + (vizSpacing * 4);
     //--------------------------------------WANDER BEHAVIORS-------------------------------------------------------------
@@ -175,7 +175,7 @@ class Culebra_UI { //<>//
     f_beh_Button.setColorActive(color(0, 255, 0));
     f_beh_Button.setColorBackground(color(255, 0, 0));
 
-    this.f_sR = cp5.addSlider("SearchRadius").plugTo(parent).plugTo(parent).setRange(0.00, 300.00).setPosition(f_beh_Width, f_beh_Header + f_beh_HeaderGap + cummulative + cummulative2 + cummulative3 + cummulative4).setValue(30).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
+    this.f_sR = cp5.addSlider("SearchRadius").plugTo(parent).plugTo(parent).setRange(0.00, 1000.00).setPosition(f_beh_Width, f_beh_Header + f_beh_HeaderGap + cummulative + cummulative2 + cummulative3 + cummulative4).setValue(30).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     this.f_av = cp5.addSlider("AlignValue").plugTo(parent).plugTo(parent).setRange(0.00, 2.00).setPosition(f_beh_Width, f_beh_Header + f_beh_HeaderGap + f_beh_Spacing  + cummulative + cummulative2 + cummulative3 + cummulative4).setValue(0.025).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     this.f_sv = cp5.addSlider("SepValue").plugTo(parent).plugTo(parent).setRange(0.00, 2.00).setPosition(f_beh_Width, f_beh_Header + f_beh_HeaderGap + (f_beh_Spacing*2)  + cummulative + cummulative2 + cummulative3 + cummulative4).setValue(0.09).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     this.f_cv = cp5.addSlider("CohVal").plugTo(parent).plugTo(parent).setRange(0.00, 2.00).setPosition(f_beh_Width, f_beh_Header + f_beh_HeaderGap + (f_beh_Spacing*3)  + cummulative + cummulative2 + cummulative3 + cummulative4).setValue(0.24).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
@@ -347,8 +347,8 @@ class Culebra_UI { //<>//
     babyCreeperSliderList.add(this.c_ms);
     this.c_mf = cp5.addSlider("bc_MaxForce").plugTo(parent).setRange(0.00, 2.00).setPosition(babyCreeper_controlWidth, babyCreeper_controlHeader + babyCreeper_controlHeaderGap + (babyCreeper_controlSpacing*2) + cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7).setValue(0.85).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40));
     babyCreeperSliderList.add(this.c_mf);
-    this.msep = cp5.addSlider("bc_MaxSep").plugTo(parent).plugTo(parent).setRange(0.00, 20.00).setPosition(babyCreeper_controlWidth, babyCreeper_controlHeader + babyCreeper_controlHeaderGap + (babyCreeper_controlSpacing*3) + cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7).setValue(0.0).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
-    babyCreeperSliderList.add(this.msep);
+    this.b_msep = cp5.addSlider("bc_MaxSep").plugTo(parent).plugTo(parent).setRange(0.00, 20.00).setPosition(babyCreeper_controlWidth, babyCreeper_controlHeader + babyCreeper_controlHeaderGap + (babyCreeper_controlSpacing*3) + cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7).setValue(0.0).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
+    babyCreeperSliderList.add(this.b_msep);
 
     cummulative8 = babyCreeper_controlHeader + babyCreeper_controlHeaderGap + (babyCreeper_controlSpacing * 3);
     //--------------------------------------BABYCREEEPER ENVIRONMENT-------------------------------------------------------------
@@ -429,7 +429,7 @@ class Culebra_UI { //<>//
 
     babyCreeperButtonList.add(babyCreeper_f_beh_Button);
 
-    this.babyCreeper_f_sR = cp5.addSlider("bc_SearchRadius").plugTo(parent).plugTo(parent).setRange(0.00, 300.00).setPosition(babyCreeper_f_beh_Width, babyCreeper_f_beh_Header + babyCreeper_f_beh_HeaderGap + cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(30).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
+    this.babyCreeper_f_sR = cp5.addSlider("bc_SearchRadius").plugTo(parent).plugTo(parent).setRange(0.00, 1000.00).setPosition(babyCreeper_f_beh_Width, babyCreeper_f_beh_Header + babyCreeper_f_beh_HeaderGap + cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(30).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     babyCreeperSliderList.add(this.babyCreeper_f_sR);
     this.babyCreeper_f_av = cp5.addSlider("bc_AlignValue").plugTo(parent).plugTo(parent).setRange(0.00, 2.00).setPosition(babyCreeper_f_beh_Width, babyCreeper_f_beh_Header + babyCreeper_f_beh_HeaderGap + babyCreeper_f_beh_Spacing + cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(0.025).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     babyCreeperSliderList.add(this.babyCreeper_f_av);
@@ -439,7 +439,7 @@ class Culebra_UI { //<>//
     babyCreeperSliderList.add(this.babyCreeper_f_cv);
     this.babyCreeper_f_va = cp5.addSlider("bc_ViewAngle").plugTo(parent).plugTo(parent).setRange(0.00, 360.00).setPosition(babyCreeper_f_beh_Width, babyCreeper_f_beh_Header + babyCreeper_f_beh_HeaderGap + (babyCreeper_f_beh_Spacing*4)+ cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(60).setDecimalPrecision(0).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     babyCreeperSliderList.add(babyCreeper_f_va);
-    this.babyCreeper_f_dc = cp5.addSlider("bc_DrawConn").plugTo(parent).plugTo(parent).setRange(0.00, 2.00).setPosition(babyCreeper_f_beh_Width, babyCreeper_f_beh_Header + babyCreeper_f_beh_HeaderGap + (babyCreeper_f_beh_Spacing*5)+ cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(0.24).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
+    this.babyCreeper_f_dc = cp5.addSlider("bc_DrawConn").plugTo(parent).plugTo(parent).setRange(0.00, 1.00).setPosition(babyCreeper_f_beh_Width, babyCreeper_f_beh_Header + babyCreeper_f_beh_HeaderGap + (babyCreeper_f_beh_Spacing*5)+ cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(0).setDecimalPrecision(0).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     babyCreeperSliderList.add(this.babyCreeper_f_dc);
     cummulative12 = babyCreeper_f_beh_Header + babyCreeper_f_beh_HeaderGap + (babyCreeper_f_beh_Spacing * 5);
     //--------------------------------------BABYCREEEPER CRAWL BEHAVIORS-------------------------------------------------------------
@@ -719,7 +719,7 @@ class Culebra_UI { //<>//
 
     seekerButtonList.add(seeker_f_beh_Button);
 
-    this.seeker_f_sR = cp5.addSlider("s_SearchRadius").plugTo(parent).plugTo(parent).setRange(0.00, 300.00).setPosition(seeker_f_beh_Width, seeker_f_beh_Header + seeker_f_beh_HeaderGap + seeker_cummulative + seeker_cummulative2 + seeker_cummulative3 + seeker_cummulative4).setValue(30).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
+    this.seeker_f_sR = cp5.addSlider("s_SearchRadius").plugTo(parent).plugTo(parent).setRange(0.00, 1000.00).setPosition(seeker_f_beh_Width, seeker_f_beh_Header + seeker_f_beh_HeaderGap + seeker_cummulative + seeker_cummulative2 + seeker_cummulative3 + seeker_cummulative4).setValue(30).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     seekerSliderList.add(seeker_f_sR);
     this.seeker_f_av = cp5.addSlider("s_AlignValue").plugTo(parent).plugTo(parent).setRange(0.00, 2.00).setPosition(seeker_f_beh_Width, seeker_f_beh_Header + seeker_f_beh_HeaderGap + seeker_f_beh_Spacing  + seeker_cummulative + seeker_cummulative2 + seeker_cummulative3 + seeker_cummulative4).setValue(0.025).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     seekerSliderList.add(seeker_f_av);
@@ -729,7 +729,7 @@ class Culebra_UI { //<>//
     seekerSliderList.add(seeker_f_cv);
     this.seeker_f_va = cp5.addSlider("s_ViewAngle").plugTo(parent).plugTo(parent).setRange(0.00, 360.00).setPosition(seeker_f_beh_Width, seeker_f_beh_Header + seeker_f_beh_HeaderGap + (seeker_f_beh_Spacing*4)  + seeker_cummulative + seeker_cummulative2 + seeker_cummulative3 + seeker_cummulative4).setValue(60).setDecimalPrecision(0).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     seekerSliderList.add(seeker_f_va);
-    this.seeker_f_dc = cp5.addSlider("s_DrawConn").plugTo(parent).plugTo(parent).setRange(0.00, 2.00).setPosition(seeker_f_beh_Width, seeker_f_beh_Header + seeker_f_beh_HeaderGap + (seeker_f_beh_Spacing*5)  + seeker_cummulative + seeker_cummulative2 + seeker_cummulative3 + seeker_cummulative4).setValue(0.24).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
+    this.seeker_f_dc = cp5.addSlider("s_DrawConn").plugTo(parent).plugTo(parent).setRange(0.00, 1.00).setPosition(seeker_f_beh_Width, seeker_f_beh_Header + seeker_f_beh_HeaderGap + (seeker_f_beh_Spacing*5)  + seeker_cummulative + seeker_cummulative2 + seeker_cummulative3 + seeker_cummulative4).setValue(0).setDecimalPrecision(0).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     seekerSliderList.add(seeker_f_dc);
 
     int seeker_cummulative5 = seeker_f_beh_Header + seeker_f_beh_HeaderGap + (seeker_f_beh_Spacing * 5);
@@ -937,7 +937,7 @@ class Culebra_UI { //<>//
 
     babySeekerButtonList.add(babySeeker_f_beh_Button);
 
-    this.babySeeker_f_sR = cp5.addSlider("bs_SearchRadius").plugTo(parent).plugTo(parent).setRange(0.00, 300.00).setPosition(babySeeker_f_beh_Width, babySeeker_f_beh_Header + babySeeker_f_beh_HeaderGap + cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(30).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
+    this.babySeeker_f_sR = cp5.addSlider("bs_SearchRadius").plugTo(parent).plugTo(parent).setRange(0.00, 1000.00).setPosition(babySeeker_f_beh_Width, babySeeker_f_beh_Header + babySeeker_f_beh_HeaderGap + cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(30).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     babySeekerSliderList.add(this.babySeeker_f_sR);
     this.babySeeker_f_av = cp5.addSlider("bs_AlignValue").plugTo(parent).plugTo(parent).setRange(0.00, 2.00).setPosition(babySeeker_f_beh_Width, babySeeker_f_beh_Header + babySeeker_f_beh_HeaderGap + babySeeker_f_beh_Spacing + cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(0.025).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     babySeekerSliderList.add(this.babySeeker_f_av);
@@ -947,7 +947,7 @@ class Culebra_UI { //<>//
     babySeekerSliderList.add(this.babySeeker_f_cv);
     this.babySeeker_f_va = cp5.addSlider("bs_ViewAngle").plugTo(parent).plugTo(parent).setRange(0.00, 360.00).setPosition(babySeeker_f_beh_Width, babySeeker_f_beh_Header + babySeeker_f_beh_HeaderGap + (babySeeker_f_beh_Spacing*4)+ cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(60).setDecimalPrecision(0).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     babySeekerSliderList.add(babySeeker_f_va);
-    this.babySeeker_f_dc = cp5.addSlider("bs_DrawConn").plugTo(parent).plugTo(parent).setRange(0.00, 2.00).setPosition(babySeeker_f_beh_Width, babySeeker_f_beh_Header + babySeeker_f_beh_HeaderGap + (babySeeker_f_beh_Spacing*5)+ cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(0.24).setDecimalPrecision(3).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
+    this.babySeeker_f_dc = cp5.addSlider("bs_DrawConn").plugTo(parent).plugTo(parent).setRange(0.00, 1.00).setPosition(babySeeker_f_beh_Width, babySeeker_f_beh_Header + babySeeker_f_beh_HeaderGap + (babySeeker_f_beh_Spacing*5)+ cummulative + cummulative2 + cummulative3 + cummulative4 + cummulative5 + cummulative6 + cummulative7 + cummulative8 + cummulative9 + cummulative10 + cummulative11).setValue(0).setDecimalPrecision(0).setSize(50, 10).setHandleSize(10).setColorForeground(color(255, 40)).setColorBackground(color(255, 40)) ;
     babySeekerSliderList.add(this.babySeeker_f_dc);
     cummulative12 = babySeeker_f_beh_Header + babySeeker_f_beh_HeaderGap + (babySeeker_f_beh_Spacing * 5);
     //--------------------------------------BABYSEEKER CRAWL BEHAVIORS-------------------------------------------------------------

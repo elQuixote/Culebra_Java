@@ -1,5 +1,7 @@
 //--All Behaviors incorporates an interface to control each and all culebra behaviors. If multiple behaviors are active then they will form a hybrid behavior--
+//--The file is kind of messy as it was put together pretty quickly, my apologies.
 //--Use 'r' key to reset the simulation--
+//--Creeper Tail Chase is enabled by "T" (disable all other behaviors first) - use search rad for cohesion threshold and coh val for cohesion value. Set all other flocking values to 0. See video
 
 //--***This library depends on 2 external libraries (peasy, toxiclibs) which you can download below***
 //--Peasy - http://mrfeinberg.com/peasycam/
@@ -84,7 +86,7 @@ boolean aligFlag = false;
 boolean flockFlag = false;
 boolean wanderFlag = false;
 boolean perlinFlag = false;
-boolean pathTrackerFlag = false;
+boolean pathTrackerFlag = true;
 boolean chaseTailFlag = false;
 boolean chaseOtherTailFlag = false;
 boolean seekFlag = false;
@@ -103,8 +105,8 @@ boolean triggerTailSeekers = false;
 boolean triggerBabies;
 boolean triggerSeekerBabies;
 // ---------------------Camera and Dims---------------
-boolean D2 = true;
-boolean D3 = false;
+boolean D2 = false;
+boolean D3 = true;
 // ---------------------IMAGE STUFF---------------------
 public PImage img;
 boolean showMap = false;
@@ -126,10 +128,11 @@ int creepCount = 300;
 // -------------------Children Stuff--------------------
 ArrayList<PVector> childSpawners;
 ArrayList childSpawnType;
-// ----------------------Camera-------------------------
 
+ArrayList<PVector> seekerchildSpawners;
+ArrayList seekerchildSpawnType;
+// ----------------------Camera-------------------------
 Cameras cams;
-CameraState state;
 int camToggle = 0;
 // --------------------OcTree + QTree------------------
 Octree octree;
@@ -197,8 +200,9 @@ public void setup() {
   this.allCombinedTrails = new ArrayList<ArrayList>();
   this.childSpawners = new ArrayList<PVector>();
   this.childSpawnType = new ArrayList();
+  this.seekerchildSpawners = new ArrayList<PVector>();
+  this.seekerchildSpawnType = new ArrayList();
   totTail = new ArrayList<PVector>();
-
   //----------INITIALIZE OBJECT LISTS---------------
   this.cams = new Cameras(this);
   if (!this.D2) {
@@ -261,9 +265,7 @@ public void setup() {
 // -----------------------Draw-----------------------
 public void draw() {
   background(0);
-
   this.creepCount = (int)this.culebraUI.ac.getValue();
-
   if (!this.D2 && this.drawBoundary) {
     drawExtents();
   }
@@ -304,7 +306,6 @@ public void draw() {
             vertex(v.x, v.y, v.z);
           }
           endShape();
-
           // Draw thin line for center of path
           stroke(255);
           strokeWeight(1);
@@ -320,7 +321,7 @@ public void draw() {
   }
   // -------------------------TREEDATA------------------------------
   if (this.D3) {  
-    if (this.flockFlag && this.createOctree) {
+    if ((this.masterBehavior_E || this.bc_masterBehavior_E) && this.createOctree) {
       Data.updateCreepersTree(this.creeperSet, this.showOctree);
     }
   } else {
@@ -334,32 +335,40 @@ public void draw() {
   ArrayList groupCombinedData = new ArrayList();
   int i = 0;
   for (Creeper c : this.creeperSet) {
-    c.setMoveAttributes(this.culebraUI.ms.getValue(), this.culebraUI.mf.getValue(), 1.5f);
+    if (!(c instanceof BabyCreeper)) {
+      c.setMoveAttributes(this.culebraUI.ms.getValue(), this.culebraUI.mf.getValue(), 1.5f);
+    } else {
+      c.setMoveAttributes(this.culebraUI.c_ms.getValue(), this.culebraUI.c_mf.getValue(), 1.5f);
+    }
     this.allTrails = new ArrayList<PVector>();
     ArrayList groupData = new ArrayList();
-
+    //----------Mesh Crawling Behavior-----------------
     if (masterBehavior_F && this.D3) {
       if (!(c instanceof BabyCreeper)) {
         c.behavior.meshCrawl(this.mesh, this.culebraUI.mc_mt.getValue(), c.getLocation(), c.getSpeed(), this.culebraUI.mc_sp.getValue(), (int)this.culebraUI.mc_maxBabies.getValue(), triggerBabies, true, this.childSpawners, this.childSpawnType);
       } else {
-        c.behavior.meshCrawl(this.mesh, this.culebraUI.mc_mt.getValue(), c.getLocation(), c.getSpeed(), this.culebraUI.mc_sp.getValue(), (int)this.culebraUI.mc_maxBabies.getValue(), triggerBabies, false, this.childSpawners, this.childSpawnType);
+        c.behavior.meshCrawl(this.mesh, this.culebraUI.babyCreeper_mc_mt.getValue(), c.getLocation(), c.getSpeed(), this.culebraUI.babyCreeper_mc_sp.getValue(), 0, triggerBabies, false, this.childSpawners, this.childSpawnType);
       }
       this.childSpawners = c.behavior.getCrawlerChildStartPositions();
       this.childSpawnType = c.behavior.getCrawlerChildSpawnType();
     }
-
+    //----------Creeper Tracking BabyMaking Behavior-----------------
     if (this.masterBehavior_G) {
       if (c.behavior.isSeparateActive() && c.behavior.isInstanceable() && this.culebraUI.msep.getValue() != 0) {
         c.behavior.creeperSeparate(this.culebraUI.msep.getValue(), creeperSet);
       }
-      c.behavior.pathFollowerBabyMaker(this.pathList, this.culebraUI.pt.getValue(), this.culebraUI.sd.getValue(), this.culebraUI.pr.getValue(), triggerBabies, (int)this.culebraUI.mc.getValue(), true, this.childSpawners, this.childSpawnType);
+      if (!(c instanceof BabyCreeper)) {
+        c.behavior.pathFollowerBabyMaker(this.pathList, this.culebraUI.pt.getValue(), this.culebraUI.sd.getValue(), this.culebraUI.pr.getValue(), triggerBabies, (int)this.culebraUI.mc.getValue(), true, this.childSpawners, this.childSpawnType);
+      } else {
+        c.behavior.pathFollowerBabyMaker(this.pathList, this.culebraUI.babyCreeper_pt.getValue(), this.culebraUI.babyCreeper_sd.getValue(), this.culebraUI.babyCreeper_pr.getValue(), triggerBabies, 0, false, this.childSpawners, this.childSpawnType);
+      }
       this.childSpawners = c.behavior.getChildStartPositions();
       this.childSpawnType = c.behavior.getChildSpawnType();
       // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     }
     if (this.chaseTailFlag) {
       totTail.addAll(c.getTrailPoints());
-      c.behavior.selfTailChaser(60.0f, 1.5f, 80.0f, 0.00f, 5.00f, totTail);
+      c.behavior.selfTailChaser(this.culebraUI.f_va.getValue(), this.culebraUI.f_cv.getValue(), this.culebraUI.f_sR.getValue(), this.culebraUI.f_sv.getValue(), this.culebraUI.f_sR.getValue(), totTail);
     }
     if (this.chaseOtherTailFlag) {
       allTrails.addAll(c.getTrailPoints());
@@ -367,37 +376,75 @@ public void draw() {
       groupData.add(allTrails);
       groupCombinedData.add(groupData);
     }
-    if (this.wanderFlag || this.masterBehavior_A || this.masterBehavior_B || masterBehavior_C || this.masterBehavior_D || subBehavior_AA || subBehavior_AB) {
-      if (this.D2) {
-        float change = this.culebraUI.wt.getValue();
-        if (subBehavior_AA) {
-          c.behavior.wander2D(true, true, change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue());
-        }
-        if (subBehavior_AB) {
-          c.behavior.superWander2D(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue(), this.culebraUI.wrt.getValue());
-        }
-      } else {
-        float change = this.culebraUI.wt.getValue();  
-        if (this.masterBehavior_A) {
-          c.behavior.wander3D(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue(), this.culebraUI.wrt.getValue());
-        }
-        if (this.masterBehavior_B) {
-          c.behavior.wander3D_Mod(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue());
-        }
-        if (this.masterBehavior_C) {
-          c.behavior.wander3D_Mod2(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue());
-        }
-        if (this.masterBehavior_D) {
-          c.behavior.wander3D_Mod3(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue());
-        }
-        if (this.subBehavior_AA) {
-          c.behavior.wander3D_subA(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue(), this.culebraUI.wrt.getValue());
-        }
-        if (this.subBehavior_AB) {
-          c.behavior.wander3D_subB(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue(), this.culebraUI.wrt.getValue());
+    //----------Creeper All Wander Behavior-----------------
+    if (this.masterBehavior_A || this.masterBehavior_B || this.masterBehavior_C || this.masterBehavior_D || this.subBehavior_AA || this.subBehavior_AB) {
+      if (!(c instanceof BabyCreeper)) {
+        if (this.D2) {
+          float change = this.culebraUI.wt.getValue();
+          if (subBehavior_AA) {
+            c.behavior.wander2D(true, true, change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue());
+          }
+          if (subBehavior_AB) {
+            c.behavior.superWander2D(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue(), this.culebraUI.wrt.getValue());
+          }
+        } else {
+          float change = this.culebraUI.wt.getValue();  
+          if (this.masterBehavior_A) {
+            c.behavior.wander3D(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue(), this.culebraUI.wrt.getValue());
+          }
+          if (this.masterBehavior_B) {
+            c.behavior.wander3D_Mod(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue());
+          }
+          if (this.masterBehavior_C) {
+            c.behavior.wander3D_Mod2(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue());
+          }
+          if (this.masterBehavior_D) {
+            c.behavior.wander3D_Mod3(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue());
+          }
+          if (this.subBehavior_AA) {
+            c.behavior.wander3D_subA(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue(), this.culebraUI.wrt.getValue());
+          }
+          if (this.subBehavior_AB) {
+            c.behavior.wander3D_subB(change, this.culebraUI.wr.getValue(), this.culebraUI.wd.getValue(), this.culebraUI.wrt.getValue());
+          }
         }
       }
     }
+    //----------BabyCreeper All Wander Behavior-----------------
+    if (this.bc_masterBehavior_A || this.bc_masterBehavior_B || this.bc_masterBehavior_C || this.bc_masterBehavior_D || this.bc_subBehavior_AA || this.bc_subBehavior_AB) {
+      if (c instanceof BabyCreeper) {
+        if (this.D2) {
+          float change = this.culebraUI.babyCreeper_wt.getValue();
+          if (subBehavior_AA) {
+            c.behavior.wander2D(true, true, change, this.culebraUI.babyCreeper_wr.getValue(), this.culebraUI.babyCreeper_wd.getValue());
+          }
+          if (subBehavior_AB) {
+            c.behavior.superWander2D(change, this.culebraUI.babyCreeper_wr.getValue(), this.culebraUI.babyCreeper_wd.getValue(), this.culebraUI.babyCreeper_wrt.getValue());
+          }
+        } else {
+          float change = this.culebraUI.babyCreeper_wt.getValue();  
+          if (this.masterBehavior_A) {
+            c.behavior.wander3D(change, this.culebraUI.babyCreeper_wr.getValue(), this.culebraUI.babyCreeper_wd.getValue(), this.culebraUI.babyCreeper_wrt.getValue());
+          }
+          if (this.masterBehavior_B) {
+            c.behavior.wander3D_Mod(change, this.culebraUI.babyCreeper_wr.getValue(), this.culebraUI.babyCreeper_wd.getValue());
+          }
+          if (this.masterBehavior_C) {
+            c.behavior.wander3D_Mod2(change, this.culebraUI.babyCreeper_wr.getValue(), this.culebraUI.babyCreeper_wd.getValue());
+          }
+          if (this.masterBehavior_D) {
+            c.behavior.wander3D_Mod3(change, this.culebraUI.babyCreeper_wr.getValue(), this.culebraUI.babyCreeper_wd.getValue());
+          }
+          if (this.subBehavior_AA) {
+            c.behavior.wander3D_subA(change, this.culebraUI.babyCreeper_wr.getValue(), this.culebraUI.babyCreeper_wd.getValue(), this.culebraUI.babyCreeper_wrt.getValue());
+          }
+          if (this.subBehavior_AB) {
+            c.behavior.wander3D_subB(change, this.culebraUI.babyCreeper_wr.getValue(), this.culebraUI.babyCreeper_wd.getValue(), this.culebraUI.babyCreeper_wrt.getValue());
+          }
+        }
+      }
+    }
+    //----------Creeper Perlin Behavior-----------------
     if (this.perlinFlag || this.masterBehavior_I || this.masterBehavior_J || masterBehavior_K || this.masterBehavior_L) {
       if (this.D2) {
         if (masterBehavior_I) {
@@ -416,35 +463,66 @@ public void draw() {
         if (this.masterBehavior_L) {
           c.behavior.noiseModified_C(this.culebraUI.pnS.getValue(), this.culebraUI.pnST.getValue(), this.culebraUI.pnM.getValue(), this.culebraUI.pnV.getValue(), this.culebraUI.pnMM.getValue());
         }
-      }      
-      //c.behavior.perlin2DMap(80f, 7.0f, 0.0f, 0.5f, img, true, true, true);
+      }
     }
-    if (this.flockFlag || this.masterBehavior_E) {
-      if (this.D3) {
-        if (this.culebraUI.f_dc.getValue() == 1) {
-          this.drawConn = true;
+    //----------Creeper Flocking Behavior-----------------
+    if (this.masterBehavior_E) {
+      if (!(c instanceof BabyCreeper)) {
+        if (this.D3) {
+          if (this.culebraUI.f_dc.getValue() == 1) {
+            this.drawConn = true;
+          } else {
+            this.drawConn = false;
+          }
+          if (this.createOctree) {
+            c.behavior.creeperflock(this.culebraUI.f_sR.getValue(), this.culebraUI.f_cv.getValue(), this.culebraUI.f_sv.getValue(), this.culebraUI.f_av.getValue(), this.culebraUI.f_va.getValue(), creeperSet, Data.getOctree(), Data.getTreeNodes(), this.drawConn);
+          } else {
+            c.behavior.creeperflock(this.culebraUI.f_sR.getValue(), this.culebraUI.f_cv.getValue(), this.culebraUI.f_sv.getValue(), this.culebraUI.f_av.getValue(), this.culebraUI.f_va.getValue(), creeperSet, this.drawConn);
+          }
         } else {
-          this.drawConn = false;
-        }
-        if (this.createOctree) {
-          c.behavior.creeperflock(this.culebraUI.f_sR.getValue(), this.culebraUI.f_cv.getValue(), this.culebraUI.f_sv.getValue(), this.culebraUI.f_av.getValue(), this.culebraUI.f_va.getValue(), creeperSet, Data.getOctree(), Data.getTreeNodes(), this.drawConn);
-        } else {
-          c.behavior.creeperflock(this.culebraUI.f_sR.getValue(), this.culebraUI.f_cv.getValue(), this.culebraUI.f_sv.getValue(), this.culebraUI.f_av.getValue(), this.culebraUI.f_va.getValue(), creeperSet, this.drawConn);
-        }
-      } else {
-        if (this.culebraUI.f_dc.getValue() == 1) {
-          this.drawConn = true;
-        } else {
-          this.drawConn = false;
-        }
-        if (this.createQTree) {
-          c.behavior.creeperflock2DTree(this.culebraUI.f_sR.getValue(), this.culebraUI.f_cv.getValue(), this.culebraUI.f_sv.getValue(), this.culebraUI.f_av.getValue(), creeperSet, Data.getQuadtree(), Data.getQTNodes(), this.drawConn);
-        } else {
-          c.behavior.creeperflock2D(this.culebraUI.f_sR.getValue(), this.culebraUI.f_cv.getValue(), this.culebraUI.f_sv.getValue(), this.culebraUI.f_av.getValue(), this.culebraUI.f_va.getValue(), creeperSet, this.drawConn);
+          if (this.culebraUI.f_dc.getValue() == 1) {
+            this.drawConn = true;
+          } else {
+            this.drawConn = false;
+          }
+          if (this.createQTree) {
+            c.behavior.creeperflock2DTree(this.culebraUI.f_sR.getValue(), this.culebraUI.f_cv.getValue(), this.culebraUI.f_sv.getValue(), this.culebraUI.f_av.getValue(), creeperSet, Data.getQuadtree(), Data.getQTNodes(), this.drawConn);
+          } else {
+            c.behavior.creeperflock2D(this.culebraUI.f_sR.getValue(), this.culebraUI.f_cv.getValue(), this.culebraUI.f_sv.getValue(), this.culebraUI.f_av.getValue(), this.culebraUI.f_va.getValue(), creeperSet, this.drawConn);
+          }
         }
       }
     }
-    if (this.D2 && (this.perlinFlag || this.masterBehavior_I)) {
+    //----------BabyCreeper Flocking Behavior-----------------
+    if (this.bc_masterBehavior_E ) {
+      if (c instanceof BabyCreeper) {
+        if (this.D3) {
+          if (this.culebraUI.babyCreeper_f_dc.getValue() == 1) {
+            this.drawConn = true;
+          } else {
+            this.drawConn = false;
+          }
+          if (this.createOctree) {
+            c.behavior.creeperflock(this.culebraUI.babyCreeper_f_sR.getValue(), this.culebraUI.babyCreeper_f_cv.getValue(), this.culebraUI.babyCreeper_f_sv.getValue(), this.culebraUI.babyCreeper_f_av.getValue(), this.culebraUI.babyCreeper_f_va.getValue(), creeperSet, Data.getOctree(), Data.getTreeNodes(), this.drawConn);
+          } else {
+            c.behavior.creeperflock(this.culebraUI.babyCreeper_f_sR.getValue(), this.culebraUI.babyCreeper_f_cv.getValue(), this.culebraUI.babyCreeper_f_sv.getValue(), this.culebraUI.babyCreeper_f_av.getValue(), this.culebraUI.babyCreeper_f_va.getValue(), creeperSet, this.drawConn);
+          }
+        } else {
+          if (this.culebraUI.babyCreeper_f_dc.getValue() == 1) {
+            this.drawConn = true;
+          } else {
+            this.drawConn = false;
+          }
+          if (this.createQTree) {
+            c.behavior.creeperflock2DTree(this.culebraUI.babyCreeper_f_sR.getValue(), this.culebraUI.babyCreeper_f_cv.getValue(), this.culebraUI.babyCreeper_f_sv.getValue(), this.culebraUI.babyCreeper_f_av.getValue(), creeperSet, Data.getQuadtree(), Data.getQTNodes(), this.drawConn);
+          } else {
+            c.behavior.creeperflock2D(this.culebraUI.babyCreeper_f_sR.getValue(), this.culebraUI.babyCreeper_f_cv.getValue(), this.culebraUI.babyCreeper_f_sv.getValue(), this.culebraUI.babyCreeper_f_av.getValue(), this.culebraUI.babyCreeper_f_va.getValue(), creeperSet, this.drawConn);
+          }
+        }
+      }
+    }
+
+    if (this.D2 && (this.masterBehavior_I)) {
       c.respawn(width, height);
     }
     if (this.D3 && !masterBehavior_G) {
@@ -452,6 +530,7 @@ public void draw() {
     } else if (this.D2 && !pathTrackerFlag) {
       c.bounce(width, height);
     }
+    //----------Creeper & BabyCreeper Move Attributes-----------------
     if (!(c instanceof BabyCreeper)) {
       c.move((int)this.culebraUI.mts.getValue(), (int)this.culebraUI.st.getValue());
     } else if (c instanceof BabyCreeper) {
@@ -466,16 +545,16 @@ public void draw() {
         c.viz.drawGradientTrails(c.getTrailPoints(), (int)this.culebraUI.st.getValue(), colorA, colorB, this.culebraUI.t.getValue(), this.culebraUI.stw.getValue());
       } else if (c instanceof BabyCreeper) {
         if (((BabyCreeper)c).getType() == "a") {
-          float colorA[] = new float[] { 120.0f, 0.0f, 0.0f };
-          float colorB[] = new float[] { 0.0f, 255.0f, 255.0f };
+          float colorA[] = new float[] { 0.0f, 120.0f, 0.0f };
+          float colorB[] = new float[] { 200.0f / 10.0f, 160.0f / 100.0f, 150.0f / 10.0f };
           if (this.D2) {
-            c.viz.drawGradientTrailsFX(c.getTrailPoints(), (int)this.culebraUI.babyCreeper_st.getValue(), colorA, colorB, this.culebraUI.babyCreeper_t.getValue(), this.culebraUI.babyCreeper_stw.getValue());
+            c.viz.drawGradientTrailsFX(c.getTrailPoints(), (int)this.culebraUI.babyCreeper_st.getValue(), colorB, colorA, this.culebraUI.babyCreeper_t.getValue(), this.culebraUI.babyCreeper_stw.getValue());
           } else {
-            c.viz.drawGradientTrails(c.getTrailPoints(), (int)this.culebraUI.babyCreeper_st.getValue(), colorA, colorB, this.culebraUI.babyCreeper_t.getValue(), this.culebraUI.babyCreeper_stw.getValue());
+            c.viz.drawGradientTrails(c.getTrailPoints(), (int)this.culebraUI.babyCreeper_st.getValue(), colorB, colorA, this.culebraUI.babyCreeper_t.getValue(), this.culebraUI.babyCreeper_stw.getValue());
           }
         } else {
-          float colorA[] = new float[] { 255.0f, 0.0f, 120.0f };
-          float colorB[] = new float[] { 200.0f / 60.0f, 160.0f / 100.0f, 80.0f / 30.0f };
+          float colorA[] = new float[] {255.0f, 215.0f, 0.0f };
+          float colorB[] = new float[] {  200f, 1f, 255f };
           if (this.D2) {
             c.viz.drawGradientTrailsFX(c.getTrailPoints(), (int)this.culebraUI.babyCreeper_st.getValue(), colorA, colorB, this.culebraUI.babyCreeper_t.getValue(), this.culebraUI.babyCreeper_stw.getValue());
           } else {
@@ -505,7 +584,7 @@ public void draw() {
     image(img2, width-290, height-85);
     image(img0, 0, height-105);
     textSize(20);
-    text("Framerate: " + (frameRate), 80, height - 6);
+    //text("Framerate: " + (frameRate), 80, height - 6);
   }
   // -----------------------SEEKER SETUP DATA------------------------
   if (this.chaseOtherTailFlag) {
@@ -520,89 +599,170 @@ public void draw() {
   // -----------------------SEEKER AGENT TYPE------------------------
   // -----------------------------------------------------------------
   for (Seeker seek : this.seekerList) {
-    seek.setMoveAttributes(this.culebraUI.seeker_ms.getValue(), this.culebraUI.seeker_mf.getValue(), 1.5f);
+    if (!(seek instanceof BabySeeker)) {
+      seek.setMoveAttributes(this.culebraUI.seeker_ms.getValue(), this.culebraUI.seeker_mf.getValue(), 1.5f);
+    } else {
+      seek.setMoveAttributes(this.culebraUI.babySeeker_c_ms.getValue(), this.culebraUI.babySeeker_c_mf.getValue(), 1.5f);
+    }
+    //----------Seeker Flock Behavior-----------------
     if (s_masterBehavior_E) {
-      seek.behavior.creeperflock(this.culebraUI.seeker_f_sR.getValue(), this.culebraUI.seeker_f_cv.getValue(), this.culebraUI.seeker_f_sv.getValue(), this.culebraUI.seeker_f_av.getValue(), this.culebraUI.seeker_f_va.getValue(), creeperSet, false);
-    }
-    if (this.chaseOtherTailFlag) {
-      seek.behavior.trailFollowerBabyMaker(allCombinedTrails, this.culebraUI.seeker_pt.getValue(), this.culebraUI.seeker_sd.getValue(), this.culebraUI.seeker_pr.getValue(), this.triggerSeekerBabies, 2, true, this.childSpawners, this.childSpawnType);
-    }
-    if (this.s_masterBehavior_A || this.s_masterBehavior_B || s_masterBehavior_C || this.s_masterBehavior_D || this.s_subBehavior_AA || this.s_subBehavior_AB) {
-
-      if (this.D2) {
-        float change = this.culebraUI.seeker_wt.getValue();
-        if (s_subBehavior_AA) {
-          seek.behavior.wander2D(true, true, change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue());
+      if (!(seek instanceof BabySeeker)) {
+        if (this.culebraUI.seeker_f_dc.getValue() == 1) {
+          this.drawConn = true;
+        } else {
+          this.drawConn = false;
         }
-        if (s_subBehavior_AB) {
-          seek.behavior.superWander2D(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue(), this.culebraUI.seeker_wrt.getValue());
+        seek.behavior.creeperflock(this.culebraUI.seeker_f_sR.getValue(), this.culebraUI.seeker_f_cv.getValue(), this.culebraUI.seeker_f_sv.getValue(), this.culebraUI.seeker_f_av.getValue(), this.culebraUI.seeker_f_va.getValue(), creeperSet, false);
+      }
+    }
+    //----------BabySeeker check and Flock Behavior-----------------
+    if (bs_masterBehavior_E) {
+      if (seek instanceof BabySeeker) {
+        if (this.culebraUI.babySeeker_f_dc.getValue() == 1) {
+          this.drawConn = true;
+        } else {
+          this.drawConn = false;
         }
+        seek.behavior.creeperflock(this.culebraUI.babySeeker_f_sR.getValue(), this.culebraUI.babySeeker_f_cv.getValue(), this.culebraUI.babySeeker_f_sv.getValue(), this.culebraUI.babySeeker_f_av.getValue(), this.culebraUI.babySeeker_f_va.getValue(), creeperSet, false);
+      }
+    }
+    //----------Seeker & BabySeeker Tracking Babymaking Behavior-----------------
+    if (this.s_masterBehavior_F || this.bs_masterBehavior_F) {
+      if (seek.getSuperClass() != "culebra.objects.Seeker") {  
+        seek.behavior.trailFollowerBabyMaker(allCombinedTrails, this.culebraUI.seeker_pt.getValue(), this.culebraUI.seeker_sd.getValue(), this.culebraUI.seeker_pr.getValue(), this.triggerSeekerBabies, (int)this.culebraUI.seeker_mc.getValue(), true, this.seekerchildSpawners, this.seekerchildSpawnType);
       } else {
-        float change = this.culebraUI.seeker_wt.getValue();  
-        if (this.s_masterBehavior_A) {
-          seek.behavior.wander3D(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue(), this.culebraUI.seeker_wrt.getValue());
-        }
-        if (this.s_masterBehavior_B) {
-          seek.behavior.wander3D_Mod(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue());
-        }
-        if (this.s_masterBehavior_C) {
-          seek.behavior.wander3D_Mod2(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue());
-        }
-        if (this.s_masterBehavior_D) {
-          seek.behavior.wander3D_Mod3(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue());
-        }
-        if (this.s_subBehavior_AA) {
-          seek.behavior.wander3D_subA(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue(), this.culebraUI.seeker_wrt.getValue());
-        }
-        if (this.s_subBehavior_AB) {
-          seek.behavior.wander3D_subB(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue(), this.culebraUI.seeker_wrt.getValue());
+        seek.behavior.trailFollowerBabyMaker(allCombinedTrails, this.culebraUI.babySeeker_pt.getValue(), this.culebraUI.babySeeker_sd.getValue(), this.culebraUI.babySeeker_pr.getValue(), this.triggerSeekerBabies, 0, false, this.seekerchildSpawners, this.seekerchildSpawnType);
+      }
+      this.seekerchildSpawners = seek.behavior.getChildStartPositions();
+      this.seekerchildSpawnType = seek.behavior.getChildSpawnType();
+    }
+    //----------Seeker All Wandering options Behavior-----------------
+    if (this.s_masterBehavior_A || this.s_masterBehavior_B || s_masterBehavior_C || this.s_masterBehavior_D || this.s_subBehavior_AA || this.s_subBehavior_AB) {
+      if (!(seek instanceof BabySeeker)) {
+        if (this.D2) {
+          float change = this.culebraUI.seeker_wt.getValue();
+          if (s_subBehavior_AA) {
+            seek.behavior.wander2D(true, true, change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue());
+          }
+          if (s_subBehavior_AB) {
+            seek.behavior.superWander2D(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue(), this.culebraUI.seeker_wrt.getValue());
+          }
+        } else {
+          float change = this.culebraUI.seeker_wt.getValue();  
+          if (this.s_masterBehavior_A) {
+            seek.behavior.wander3D(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue(), this.culebraUI.seeker_wrt.getValue());
+          }
+          if (this.s_masterBehavior_B) {
+            seek.behavior.wander3D_Mod(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue());
+          }
+          if (this.s_masterBehavior_C) {
+            seek.behavior.wander3D_Mod2(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue());
+          }
+          if (this.s_masterBehavior_D) {
+            seek.behavior.wander3D_Mod3(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue());
+          }
+          if (this.s_subBehavior_AA) {
+            seek.behavior.wander3D_subA(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue(), this.culebraUI.seeker_wrt.getValue());
+          }
+          if (this.s_subBehavior_AB) {
+            seek.behavior.wander3D_subB(change, this.culebraUI.seeker_wr.getValue(), this.culebraUI.seeker_wd.getValue(), this.culebraUI.seeker_wrt.getValue());
+          }
         }
       }
     }
-    // if (this.perlinFlag) {
-    // seek.behavior.perlin(this.img, applyMap, 80f, 7.0f, 0.0f, 0.5f);
-    // }
-    if (this.D3) {
-      //c.respawn(width, height, nHeight,true,false);
+    //----------BabySeeker All Wandering options Behavior-----------------
+    if (this.bs_masterBehavior_A || this.bs_masterBehavior_B || this.bs_masterBehavior_C || this.bs_masterBehavior_D || this.bs_subBehavior_AA || this.bs_subBehavior_AB) {
+      if (seek instanceof BabySeeker) {
+        if (this.D2) {
+          float change = this.culebraUI.babySeeker_wt.getValue();
+          if (s_subBehavior_AA) {
+            seek.behavior.wander2D(true, true, change, this.culebraUI.babySeeker_wr.getValue(), this.culebraUI.babySeeker_wd.getValue());
+          }
+          if (s_subBehavior_AB) {
+            seek.behavior.superWander2D(change, this.culebraUI.babySeeker_wr.getValue(), this.culebraUI.babySeeker_wd.getValue(), this.culebraUI.babySeeker_wrt.getValue());
+          }
+        } else {
+          float change = this.culebraUI.babySeeker_wt.getValue();  
+          if (this.s_masterBehavior_A) {
+            seek.behavior.wander3D(change, this.culebraUI.babySeeker_wr.getValue(), this.culebraUI.babySeeker_wd.getValue(), this.culebraUI.babySeeker_wrt.getValue());
+          }
+          if (this.s_masterBehavior_B) {
+            seek.behavior.wander3D_Mod(change, this.culebraUI.babySeeker_wr.getValue(), this.culebraUI.babySeeker_wd.getValue());
+          }
+          if (this.s_masterBehavior_C) {
+            seek.behavior.wander3D_Mod2(change, this.culebraUI.babySeeker_wr.getValue(), this.culebraUI.babySeeker_wd.getValue());
+          }
+          if (this.s_masterBehavior_D) {
+            seek.behavior.wander3D_Mod3(change, this.culebraUI.babySeeker_wr.getValue(), this.culebraUI.babySeeker_wd.getValue());
+          }
+          if (this.s_subBehavior_AA) {
+            seek.behavior.wander3D_subA(change, this.culebraUI.babySeeker_wr.getValue(), this.culebraUI.babySeeker_wd.getValue(), this.culebraUI.babySeeker_wrt.getValue());
+          }
+          if (this.s_subBehavior_AB) {
+            seek.behavior.wander3D_subB(change, this.culebraUI.babySeeker_wr.getValue(), this.culebraUI.babySeeker_wd.getValue(), this.culebraUI.babySeeker_wrt.getValue());
+          }
+        }
+      }
+    }
+    if (this.D2 && (this.masterBehavior_I)) {
+      seek.respawn(width, height);
+    }
+    if (this.D3 && (!masterBehavior_G && !this.s_masterBehavior_F && this.bs_masterBehavior_F)) {
       seek.bounce(width, height, nHeight);
-    } else {
+    } else if (this.D2 && !pathTrackerFlag) {
       seek.bounce(width, height);
     }
-    seek.move((int)this.culebraUI.seeker_mts.getValue(), (int)this.culebraUI.seeker_st.getValue());
-    // System.out.println(seek.getBehaviorType());
-    if (createTrails) {
-      // c.viz.createTrails();
-      // c.viz.setTrailData(c.getTrailPoints());
-
-      // --------Draw trails with color and with gradient--------
-      // float colorA[] = new float[] { 1f, 0f, 0f };
-      // float colorB[] = new float[] { 0.73f, 0.84f, 0.15f };
-      // c.viz.drawTrails(c.getTrailPoints(), true, 100, colorA,
-      // colorB, 255.0f, 1.0f);
-      // --------------------------------------------------------
-      // --------Draw trails with color--------------------------
-      // float colorA[] = new float[] {255f, 0f, 0f};
-      // c.viz.drawTrails(c.getTrailPoints(), true, colorA, 255, 1);
-      // c.viz.drawTrails(c.getTrailPoints(), true);
-      // --------------------------------------------------------
-      // seek.viz.drawTrails(seek.getTrailPoints(), true);
-      float colorA[] = new float[] { 255.0f, 0f, 0f };
-      seek.viz.drawTrails(seek.getTrailPoints(), true, (int)this.culebraUI.seeker_st.getValue(), colorA, this.culebraUI.seeker_t.getValue(), this.culebraUI.seeker_stw.getValue(), false);
-      // trailData = c.viz.getTrailData();
+    if (!(seek instanceof BabySeeker)) {
+      seek.move((int)this.culebraUI.seeker_mts.getValue(), (int)this.culebraUI.seeker_st.getValue());
+    } else {
+      seek.move((int)this.culebraUI.seeker_mts.getValue(), (int)this.culebraUI.babySeeker_st.getValue());
     }
-    pushStyle();
-    stroke(255);
-    strokeWeight(4);
-    point(seek.getLocation().x, seek.getLocation().y, seek.getLocation().z);
-    popStyle();
+    if (createTrails) {
+      if (!(seek instanceof BabySeeker)) {  
+        // --------Draw trails with color and with gradient--------
+        //float colorA[] = new float[] { 180.0f, 0.0f, 60.0f };
+        //float colorB[] = new float[] { 0.0f, 150.0f, 255.0f };
+        float colorA[] = new float[] { 1f, 0f, 1f };
+        float colorB[] = new float[] { 0.73f, 0.0, 0.15f };
+        seek.viz.drawGradientTrails(seek.getTrailPoints(), (int)this.culebraUI.seeker_st.getValue(), colorA, colorB, this.culebraUI.seeker_t.getValue(), this.culebraUI.seeker_stw.getValue());
+        pushStyle();
+        stroke(255);
+        strokeWeight(this.culebraUI.seeker_hw.getValue());
+        point(seek.getLocation().x, seek.getLocation().y, seek.getLocation().z);
+        popStyle();
+      } else if (seek instanceof BabySeeker) {
+        if (((BabySeeker)seek).getType() == "a") {
+          float colorA[] = new float[] { 120.0f, 0.0f, 0.0f };
+          float colorB[] = new float[] { 0.0f, 255.0f, 255.0f };
+          //float colorB[] = new float[]{ 100.0f / 60.0f, 200.0f / 10.0f, 180.0f / 5.0f };
+          seek.viz.drawGradientTrails(seek.getTrailPoints(), (int)this.culebraUI.babySeeker_st.getValue(), colorA, colorB, this.culebraUI.babySeeker_t.getValue(), this.culebraUI.babySeeker_stw.getValue());
+        } else {
+          float colorA[] = new float[] { 255.0f, 0.0f, 120.0f };
+          float colorB[] = new float[] { 200.0f / 60.0f, 160.0f / 100.0f, 80.0f / 30.0f };
+          seek.viz.drawGradientTrails(seek.getTrailPoints(), (int)this.culebraUI.babySeeker_st.getValue(), colorA, colorB, this.culebraUI.babySeeker_t.getValue(), this.culebraUI.babySeeker_stw.getValue());
+        }
+        pushStyle();
+        stroke(255);
+        strokeWeight(this.culebraUI.babySeeker_hw.getValue());
+        point(seek.getLocation().x, seek.getLocation().y, seek.getLocation().z);
+        popStyle();
+      }
+    }
     i++;
   }
+  //----------if there are babies to create create them (BabyCreepers)-----------------
   if (this.childSpawners.size() > 0) {
     newDude();
     this.childSpawners = new ArrayList<PVector>();
     this.childSpawnType = new ArrayList();
   }
-
+  //----------if there are babies to create create them (BabySeekers)-----------------
+  if (this.seekerchildSpawners.size() > 0) {
+    newSeekerDude();
+    this.seekerchildSpawners = new ArrayList<PVector>();
+    this.seekerchildSpawnType = new ArrayList();
+  }
+  //----------Clear all the tracking data-----------------
   this.allCombinedTrails.clear();
   this.allTrails.clear();
   this.totTail.clear();
@@ -722,8 +882,7 @@ public void spawnSeekers() {
     this.seekerList.add(this.creeperTracker);
   }
 }
-
-// ---------------------------------------ChildrenCreation-----------------------------------
+// ---------------------------------------Creeper ChildrenCreation-----------------------------------
 void newDude() {
   int babyCount = 0;
   for (PVector px : this.childSpawners) {
@@ -740,6 +899,27 @@ void newDude() {
     } else {
       a = new BabyCreeper(new PVector(px.x, px.y, px.z), speed, false, "b", this.D3, this);
       this.creeperSet.add(a);
+    }
+    babyCount++;
+  }
+}
+// ---------------------------------------Seeker ChildrenCreation-----------------------------------
+void newSeekerDude() {
+  int babyCount = 0;
+  for (PVector px : this.seekerchildSpawners) {
+    PVector speed;
+    if (this.spawnEdge) {
+      speed = new PVector(1, 0, 0);
+    } else {
+      speed = new PVector(random(-1, 1), random(-1, 1), 0);
+    }
+    Seeker a;
+    if ((int) this.seekerchildSpawnType.get(babyCount) % 2 == 0) {
+      a = new BabySeeker(new PVector(px.x, px.y, px.z), speed, false, "a", this.D3, this);
+      this.seekerList.add(a);
+    } else {
+      a = new BabySeeker(new PVector(px.x, px.y, px.z), speed, false, "b", this.D3, this);
+      this.seekerList.add(a);
     }
     babyCount++;
   }
@@ -862,6 +1042,8 @@ void CreeperSeeker(boolean resetFlag) {
   if (resetFlag) {
     this.seeker_toggleUI = !this.seeker_toggleUI;
     this.masterBehavior_H = !this.masterBehavior_H;
+    this.s_masterBehavior_F = !this.s_masterBehavior_F;
+    this.bs_masterBehavior_F = !this.bs_masterBehavior_F;
     this.chaseOtherTailFlag = !this.chaseOtherTailFlag;
   }
 }
@@ -978,7 +1160,7 @@ void s_Flocking(boolean resetFlag) {
     this.s_masterBehavior_E = !this.s_masterBehavior_E;
   }
 }
-void s_MeshCrawl(boolean resetFlag) {
+void s_CreeperTrack(boolean resetFlag) {
   if (resetFlag) {
     this.s_masterBehavior_F = !this.s_masterBehavior_F;
   }
@@ -1019,7 +1201,7 @@ void bs_Flocking(boolean resetFlag) {
     this.bs_masterBehavior_E = !this.bs_masterBehavior_E;
   }
 }
-void bs_MeshCrawl(boolean resetFlag) {
+void bs_CreeperTrack(boolean resetFlag) {
   if (resetFlag) {
     this.bs_masterBehavior_F = !this.bs_masterBehavior_F;
   }
