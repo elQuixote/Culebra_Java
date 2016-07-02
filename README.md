@@ -42,5 +42,5 @@ A collection of objects and behaviors for creating dynamic multi agent interacti
 
 ##### CREDITS #####
 
-* Obviously thanks to Craig Reynolds for defining a good chunk of these behaivors
+* Thanks to Craig Reynolds for all of his work on boid behavior
 * Big thanks to Daniel Shiffman, his work has been very inspirational and referenced in this library.
