@@ -4,7 +4,7 @@
 A collection of objects and behaviors for creating dynamic multi agent interactions.
 2D|3D Multi Object Behavior library focused on hybrid system interactions with custom Visualization, Data, and performance features.
 
-#####There are 6 Major Types of Behaviors which can be hybridized anyway your heart desires.#####
+##### There are 6 Major Types of Behaviors which can be hybridized anyway your heart desires. #####
 * Flocking Behavior - Flockers Behavior Type Class Implements Flock Behavior Interface
 * Wandering Behavior - Wanderer Behavior Type Class Implements Wander Behavior Interface, the base Wander behavior is from Craig Reynolds and Daniel Shiffman.
 * Noise Behavior - Improved Perlin Noise Behavior Type Class Implements Noise Behavior Interface. 
@@ -13,10 +13,10 @@ A collection of objects and behaviors for creating dynamic multi agent interacti
 * Mesh Crawler - Mesh Crawler Behavior Class. 
 * Forces – Attract, Repel and other force methods inside the controller class.
 
-#####The Controller#####
+##### The Controller #####
 * Controller Class - this is the class which acts as controller for all behaviors classes. This class also builds on behaviors, using image drivers and other features which are not in the stock behavior classes. The Abstract Object class mentioned below contains and instance of this class (controller contains instance of all behaviors), and since all other objects derrive from this class the controller is there to provide a global controlling mechanism. See Class Diagram for more details.
 
-#####There are currently 5 types of objects you can inherit from or implement their default attributes.#####
+##### There are currently 5 types of objects you can inherit from or implement their default attributes. #####
 * Object - Abstract class from which other objects can inherit from. Both Creepers & Seekers extend this class. This class also has the instances of the controller and vizualization classes required to run these objects. This class declares the basic abstract methods which must be implemented by any class which derrives from it.
 * Creeper - Creeper Objects are the main implementation of the abstract Objects. They are able to implement any type of behavior and are meant as a do all type of object.
 * Seekers - Seeker Objects are the technically also main implementation of the abstract Objects, like Creeper Objects, they poses the same capabilities. They are able to implement any type of behavior but are meant to be used as Objects which "Seek" other objects. They should be used in conjunction with behaviors.trailFollowing Methods. I have not restricted their behavior implementations at this stage but might do so in the future to make certain behaviors more Object type specific.
@@ -25,7 +25,7 @@ A collection of objects and behaviors for creating dynamic multi agent interacti
 
 #### RELEASES ####
 
-#####Culebra 1.0 - Requires Processing 3.1.1#####
+##### Culebra 1.0 - Requires Processing 3.1.1 #####
 * View the [Release Notes](http://www.culebra.technology/culebra-1/index.html#download) and [JavaDoc API Documents](http://culebra.technology/culebra-1/reference/index.html)
 * [Download Culebra 1.0](http://www.culebra.technology/culebra-1/index.html#download) 
 
@@ -35,7 +35,7 @@ A collection of objects and behaviors for creating dynamic multi agent interacti
 * Create your own objects and inherit from Culebra Objects. This will provide access to the controller and all classes. [See File](http://www.culebra.technology/culebra-1/examples/CustomObject_Polymorphism_III/CustomObject_Polymorphism_III.pde)
 
 
-#####For more specific details see the Class Diagram Below####
+##### For more specific details see the Class Diagram Below ####
 
 #### CLASS DIAGRAMS ####
 [![IMAGE](images/Culebra_ClassDiagram_Small.jpg)](http://www.culebra.technology/culebra-1/Culebra_ClassDiagram.jpg)
